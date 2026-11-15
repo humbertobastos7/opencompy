@@ -69,6 +69,7 @@ web_modules/
 .env
 .env.*
 !.env.example
+.envrc
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -165,6 +166,26 @@ frontend-context.txt
 cookies.txt
 *.pem
 *.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+.netrc
+.npmrc
+.aws/
+.ssh/
+
+# Local user profiles, conversations, and database backups
+/data/runtime/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.dump
+*.sql.gz
+/backups/
 
 # Local package store
 .pnpm-store/
