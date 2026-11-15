@@ -147,3 +147,49 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# IntelliJ based IDEs
+.idea
+
+# Finder (macOS)
+.DS_Store
+__MACOSX/
+
+# Local AI assistant context
+CLAUDE.md
+CodexContext/
+Codex context/
+frontend-context.txt
+
+# Sensitive local files
+cookies.txt
+*.pem
+*.key
+
+# Local package store
+.pnpm-store/
+
+# Not part of the open-source release: hosted deployment tooling and
+# unused design/media leftovers
+.github/
+infra/
+NewSchema/
+docker-compose.blue.yaml
+docker-compose.green.yaml
+docker-compose.prod.yaml
+docker-compose.staging.yaml
+docker-compose.proxy.yaml
+docker/proxy.nginx.conf
+docker/staging-proxy.nginx.conf
+docker/upstream.conf
+scripts/deploy-slot.sh
+scripts/deploy-staging.sh
+scripts/setup-server.sh
+scripts/setup-nginx.sh
+scripts/setup-rds.sh
+scripts/check-migrations.sh
+/jjjj.mov
+/logoaplicaçao.png
+/logologotipo.png
+/footerpwered.png
+/UI*.mp3

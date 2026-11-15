@@ -1,0 +1,3 @@
+# Keep shell entrypoints LF-only so Unix shebangs do not pick up a trailing \r.
+*.sh text eol=lf
+.githooks/* text eol=lf

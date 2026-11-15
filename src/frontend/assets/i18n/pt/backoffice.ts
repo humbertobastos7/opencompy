@@ -1,0 +1,28 @@
+export const backoffice = {
+	welcome: "Bem-vindo,",
+	daily_report: "Relatório Diário",
+	senior: "Sénior",
+	age: "Idade",
+	interaction_time: "Tempo de Interação",
+	total_interactions: "Total de Interações",
+	conversation_topics: "Tópicos de Conversa",
+	wellbeing: "Grau de Bem-estar",
+	meals: "Refeições",
+	entertainment: "Entretenimento",
+	games: "Jogos",
+	reading: "Leitura",
+	good: "Bom",
+	bad: "Mau",
+	neutral: "Neutro",
+	see_seniors: "Ver Seniores",
+	see_reports: "Ver Relatórios",
+	register_new_senior: "Registar Novo Sénior",
+	associate_senior: "Associar Sénior",
+	details: "Detalhes",
+	senior_associated_successfully: "Sénior associado com sucesso.",
+	senior_association_error: "Erro ao associar sénior",
+	senior_association_explanation_1:
+		"O sénior recebeu uma notificação para aceitar a associação.",
+	senior_association_explanation_2:
+		"Assim que o sénior aceitar a associação, poderá aceder à sua conta.",
+};

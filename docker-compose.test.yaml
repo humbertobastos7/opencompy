@@ -1,0 +1,78 @@
+## Ephemeral test environment for CI smoke tests.
+## Builds services from source (no ECR images).
+## Runs only backend + db — no frontend needed for API tests.
+## Torn down with `docker compose -f docker-compose.test.yaml down -v` after tests.
+services:
+  db:
+    image: pgvector/pgvector:pg15
+    environment:
+      POSTGRES_DB: compy_test
+      POSTGRES_USER: compy
+      POSTGRES_PASSWORD: compy_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U compy -d compy_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    tmpfs:
+      - /var/lib/postgresql/data   # in-memory DB for speed; wiped on down -v
+
+  migrator:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    command: sh ./scripts/start-migrate.sh
+    environment:
+      DATABASE_URL: postgresql://compy:compy_test@db:5432/compy_test
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ai:
+    build:
+      context: .
+      dockerfile: docker/ai.Dockerfile
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      # Placeholder keys — AI service must start but real API calls are not tested
+      ANTHROPIC_API_KEY: smoke-test-placeholder
+      ANTHROPIC_MODEL: claude-haiku-4-5-20251001
+      ANTHROPIC_SUMMARY_MODEL: claude-haiku-4-5-20251001
+      ELEVENLABS_API_KEY: smoke-test-placeholder
+      ELEVENLABS_BASE_URL: https://api.elevenlabs.io
+      ELEVENLABS_MODEL_ID: eleven_turbo_v2
+      ELEVENLABS_OUTPUT_FORMAT: mp3_44100_128
+      ELEVENLABS_VOICE_ID_DEFAULT: smoke-test
+      ELEVENLABS_STABILITY: "0.5"
+      ELEVENLABS_SIMILARITY_BOOST: "0.5"
+      ELEVENLABS_STT_REALTIME_MODEL_ID: smoke-test
+      ELEVENLABS_STT_BATCH_MODEL_ID: smoke-test
+      TTS_PROVIDER: elevenlabs
+      GEMINI_API_KEY: smoke-test-placeholder
+      GEMINI_TTS_VOICE_NAME: smoke-test
+      GEMINI_TTS_STYLE_PROMPT: smoke-test
+      SYSTEM_PROMPT: You are a helpful assistant.
+      CHAT_ALLOWED_TOPICS: general
+      CHAT_OUT_OF_SCOPE_REDIRECT_MESSAGE: I can only discuss relevant topics.
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      DATABASE_URL: postgresql://compy:compy_test@db:5432/compy_test
+      AI_SERVICE_URL: http://ai:3001
+      CORS_ORIGINS: http://localhost:3000
+      OPENAI_API_KEY: smoke-test-placeholder
+    depends_on:
+      ai:
+        condition: service_started
+      migrator:
+        condition: service_completed_successfully

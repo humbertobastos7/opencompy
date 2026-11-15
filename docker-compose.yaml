@@ -1,0 +1,95 @@
+services:
+  db:
+    image: pgvector/pgvector:pg15
+    container_name: compy-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: compy_db
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d compy_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    command: sh scripts/start-migrate.sh
+    environment:
+      DATABASE_URL: postgres://admin:password@db:5432/compy_db
+    volumes:
+      - ./drizzle:/app/drizzle
+    depends_on:
+      db:
+        condition: service_healthy
+  ai:
+    build:
+      context: .
+      dockerfile: docker/ai.Dockerfile
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      SYSTEM_PROMPT: ${SYSTEM_PROMPT:-}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY}
+      ELEVENLABS_BASE_URL: ${ELEVENLABS_BASE_URL:-https://api.elevenlabs.io}
+      ELEVENLABS_MODEL_ID: ${ELEVENLABS_MODEL_ID:-eleven_v3}
+      ELEVENLABS_STREAMING_MODEL_ID: ${ELEVENLABS_STREAMING_MODEL_ID:-eleven_v3}
+      ELEVENLABS_USE_STREAMING: ${ELEVENLABS_USE_STREAMING:-false}
+      ELEVENLABS_OUTPUT_FORMAT: ${ELEVENLABS_OUTPUT_FORMAT:-mp3_44100_128}
+      ELEVENLABS_VOICE_ID_DEFAULT: ${ELEVENLABS_VOICE_ID_DEFAULT:-21m00Tcm4TlvDq8ikWAM}
+      ELEVENLABS_STABILITY: ${ELEVENLABS_STABILITY:-0.45}
+      ELEVENLABS_SIMILARITY_BOOST: ${ELEVENLABS_SIMILARITY_BOOST:-0.75}
+      ELEVENLABS_STT_REALTIME_MODEL_ID: ${ELEVENLABS_STT_REALTIME_MODEL_ID:-scribe_v2_realtime}
+      ELEVENLABS_STT_BATCH_MODEL_ID: ${ELEVENLABS_STT_BATCH_MODEL_ID:-scribe_v2}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_TTS_MODEL: ${GEMINI_TTS_MODEL:-gemini-2.5-flash-preview-tts}
+      GEMINI_TTS_VOICE_NAME: ${GEMINI_TTS_VOICE_NAME:-Aoede}
+      GEMINI_TTS_LANGUAGE_CODE: ${GEMINI_TTS_LANGUAGE_CODE:-pt-PT}
+      GEMINI_TTS_STYLE_PROMPT: ${GEMINI_TTS_STYLE_PROMPT:-}
+      TTS_PROVIDER: ${TTS_PROVIDER:-elevenlabs}
+      LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
+      LLM_WEB_SEARCH: ${LLM_WEB_SEARCH:-auto}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-6}
+      ANTHROPIC_SUMMARY_MODEL: ${ANTHROPIC_SUMMARY_MODEL:-claude-haiku-4-5-20251001}
+    ports:
+      - "3001:3001"
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    environment:
+      PORT: 3000
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: postgres://admin:password@db:5432/compy_db
+      AI_SERVICE_URL: http://ai:3001
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY}
+      ELEVENLABS_BASE_URL: ${ELEVENLABS_BASE_URL:-https://api.elevenlabs.io}
+      ELEVENLABS_STT_BATCH_MODEL_ID: ${ELEVENLABS_STT_BATCH_MODEL_ID:-scribe_v2}
+    ports:
+      - "3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      ai:
+        condition: service_started
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+      args:
+        VITE_API_URL: ${FRONTEND_PUBLIC_API_URL:-http://localhost:8080}
+        VITE_USE_REALTIME_CHAT: ${VITE_USE_REALTIME_CHAT:-true}
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+volumes:
+  pgdata:

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Compy.ai</string>
+    <string name="title_activity_main">Compy.ai</string>
+    <string name="package_name">pt.visualthinking.compyai</string>
+    <string name="custom_url_scheme">pt.visualthinking.compyai</string>
+</resources>
